@@ -1,137 +1,166 @@
 # NEURO140-Final-Project
 
-An end-to-end pipeline for preparing whole-slide images (WSIs) from TCGA, extracting patch embeddings with pretrained vision models, and loading them for downstream machine-learning experiments.  
+An end-to-end pipeline for  
+1. tiling TCGA whole-slide images (WSIs),  
+2. extracting patch embeddings with pretrained vision backbones, and  
+3. training a binary gene-mutation classifier.(with or without adpaters)
 
 ---
 
-## 📁 Folder Structure
+## 📁 Repository Layout
 
 ```
 
 .
-├── WSI-prep/             # TCGA WSI tiling & embedding pipeline
-│   ├── slides/           # raw SVS files (downloaded from GDC)
-│   ├── tiles/            # HDF5 patch-banks (output of tiling)
-│   ├── embeddings/       # precomputed patch embeddings (.npy or .pt)
-│   ├── utils/            # helper scripts (I/O, stain-norm, etc.)
-│   └── run\_pipeline.py   # orchestrates tiling → embedding → saving
-├── models/               # (future) model definitions & training code
-├── experiments/          # (future) notebooks, configs, W\&B logs
-└── README.md             # this file
+├── WSI-prep/                  # TCGA WSI tiling & embedding
+│   ├── slides/                # raw SVS files (download from GDC)
+│   ├── tiles/                 # HDF5 patch banks (output of tiling)
+│   ├── coords/                # optional: stored tile coordinates(Large, store it in lab storage)
+│   ├── features/              # HDF5 or .npy embeddings per slide(Large, store it in lab storage)
+│   ├── utils/                 # I/O, stain-norm, thumbnail helpers
+│   ├── create\_tiles.py        # build tiles → HDF5
+│   └── create\_features.py     # extract by CHIEF/UNI → HDF5/.npy
+├── train/                     # TCGA gene-mutation training
+│   ├── main.py                # main training entrypoint
+│   ├── args.py                # arguments used in training
+│   ├── data.py                # Deal with tcga datasets.
+│   ├── utils.py                # Helpers to save some arguments.
+│   ├── train.py                # Training functions.
+│   └── model.py               # The simple classifier models.
+└── README.md                  # this file
 
 ````
 
 ---
 
-## 🔍 Attributions & Origins
+## 🔍 Attributions
 
-- **Tiling & feature-extraction logic**  
-  Adapted from private lab repos by **Shih-Yen Lin**, **Bao Li**, and **Sophie Tsai**.  
-- **Patch embedding code**  
-  Based on the open-source [Owkin HistoSSLscaling](https://github.com/owkin/HistoSSLscaling) project.  
-- **My own contributions in WSI preparations**  
-  - TCGA download scripts & metadata parsing  
-  - Unified pipeline (tiling → embedding → saving)  
-  - Integration of stain-normalization, slide filtering, and tile subsampling  
-  - Logging experiments to Weights & Biases (W&B)  
-
+- **Tiling & feature-extraction**  
+  Adapted and integrated some private lab repos (Contributors: Shih-Yen Lin, Bao Li, Sophie Tsai). I refractored and integrated it, and use it in TCGA datasets, refractored and add adapter logic.
+- **Patch embeddings**  
+  Leveraging open-source [Owkin HistoSSLscaling](https://github.com/owkin/HistoSSLscaling).  
 ---
 
 ## ⚙️ Prerequisites
 
-Make sure you have **Python 3.10+**:
-
 ```bash
+# create env
 conda create -n tcga-py310 python=3.10
 conda activate tcga-py310
+
+# core deps
 conda install -c conda-forge openslide-python openslide
 pip install \
     torch torchvision timm albumentations \
     opencv-python-headless h5py pillow pandas \
     numpy scikit-learn tqdm wandb omegaconf torchstain
-````
+```
 
 ---
 
-## 🚀 Step-by-Step Usage
+## 🚀 Usage
 
-### 1. Download WSIs
-
-1. Obtain TCGA slide IDs from the GDC portal.
-2. Place it in the desired path.
-
-### 2. Tile WSIs → HDF5 patch banks
+### 1. Tile WSIs → HDF5 patch banks
 
 ```bash
 cd WSI-prep
-python run_pipeline.py \
-  --slide-dir slides/ \
-  --tile-output-dir tiles/ \
-  --tile-size 224 \
+python create_tiles.py \
+  --slide_folder slides/ \
+  --patch_folder tiles/ \
+  --patch_size 224 \
   --stride 224 \
-  --stain-norm macenko
+  --tissue_threshold 0.8 \
+  --mags 40 20
 ```
 
-* **Output**: one HDF5 file per slide, containing RGB patches.
+**Output**:
+`tiles/TCGA-XX-YYYY.h5` containing
 
-### 3. Embed patches with pretrained models
-
-```bash
-python create_features.py
-  --model chief \
-  --batch-size 256 \
-  --output-dir output_path\
-  ...
-```
-
+* datasets `40`, `20` (RGB patches)
+* `meta` (tissue percentage)
 
 ---
 
-## 🏗 Model Framework (scaffold)
-
-The **`models/`** folder will house your classification, survival, and fairness-aware code:
-
-* **Network definitions**
-
-  * `ClfNet` (classification)
-* **Training entrypoint**
-
-  * `main_genetic.py` accepts arguments via `framework.parse_args()`
-  * Supports flags: `--skip_existing`, `--inference_only`, `--max_train_tiles`, etc.
-
-### Example training command
+### 2. Embed patches with CHIEF or UNI(baseline)
 
 ```bash
-python main_genetic.py \
-  --cancer brca \
-  --task 4 \
-  --partition 2 \
-  --train_method baseline \
-  --model_path /path/to/models/ \
-  --fair_attr '{"age":["old","young"]}' \
-  --skip_existing \
-  --epochs 100 \
-  --batch_size 16 \
-  --eval_batch_size 4 \
+cd WSI-prep
+python create_features.py \
+  --patch_folder tiles/ \
+  --wsi_folder slides/ \
+  --feat_folder embeddings/ \
+  --models chief,uni \
+  --batch_size 256 \
   --device cuda
 ```
 
----
+**Output** per slide:
+
+```
+embeddings/TCGA-XX-YYYY/40x_CHIEF.npy
+embeddings/TCGA-XX-YYYY/40x_UNI.npy
+success.db
+```
+
+### 2.1 Extract features with adapters
+
+The codebase supports bottleneck adapters for efficient fine-tuning. To use adapters:
+
+1. Ensure the adapter code is present:
+   - `models/adapter.py` (bottleneck block)
+   - `inject_adapter()` in `models/library.py`
+
+2. Run feature extraction with adapters:
+
+```bash
+cd WSI-prep
+python create_features.py \
+  --patch_folder tiles/ \
+  --wsi_folder slides/ \
+  --feat_folder embeddings/ \
+  --models chief \
+  --device cuda \
+  --target_mag 20 \
+  --stain_norm \
+  --adapter_type bottleneck \
+  --adapter_dim 64
+```
+
+**What happens?**
+- CHIEF weights stay frozen
+- Each Transformer block gets a 64-d bottleneck adapter
+- Only adapter parameters are saved in HDF5s (under dataset name `adapter_weights`)
 
 ---
 
-## 📄 License & Acknowledgments
+### 3. Train gene-mutation classifier
 
-This project builds on private lab code (Lin, Li, Tsai) and the Owkin HistoSSLscaling repo.
-Please cite those sources if you use this work in publication.
-
-```plaintext
-@software{owkin_histolssl,
-  author = {Owkin},
-  title = {HistoSSLscaling},
-  year = {2023},
-  url = {https://github.com/owkin/HistoSSLscaling}
-}
+```bash
+cd train
+python main.py \
+  --cancer BRCA \
+  --gene  TP53 \
+  --feat_folder ../WSI-prep/embeddings \
+  --model CHIEF \
+  --mag     40 \
+  --batch_size 16 \
+  --eval_batch_size 32 \
+  --epochs  20 \
+  --lr      1e-4 \
+  --device  cuda
 ```
 
 ---
+
+## 📄 License & Citation
+
+This work builds on private-lab code (Lin, Li, Tsai) and Owkin's HistoSSLscaling. Please cite:
+
+```bibtex
+@software{owkin_histolssl,
+  author = {Owkin},
+  title  = {HistoSSLscaling},
+  year   = {2023},
+  url    = {https://github.com/owkin/HistoSSLscaling}
+}
+```

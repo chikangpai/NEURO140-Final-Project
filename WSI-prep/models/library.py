@@ -8,6 +8,23 @@ import torch.nn as nn
 import timm
 from huggingface_hub import hf_hub_download, login
 
+from models.adapter import Adapter     # add to imports
+
+def inject_adapter(model, adapter_type, adapter_dim):
+    """Dynamically attach a bottleneck adapter to every Transformer block."""
+    if adapter_type is None:
+        return model
+    for name, module in model.named_modules():
+        if hasattr(module, "ffn"):
+            module.adapter = Adapter(module.ffn.out_features, adapter_dim)
+            old_forward = module.forward
+            def new_forward(*args, **kwargs):
+                h = old_forward(*args, **kwargs)
+                return module.adapter(h)
+            module.forward = new_forward
+    return model
+
+
 class ModelType(enum.Enum):
     CHIEF = "chief"
     UNI   = "uni"
@@ -34,9 +51,18 @@ def get_model(model_type: ModelType, hf_token: Optional[str] = None) -> nn.Modul
     Supports only CHIEF and UNI backbones.
     """
     if model_type == ModelType.UNI:
-        return _build_uni(hf_token)
+        backbone = _build_uni(hf_token)
+        backbone = inject_adapter(backbone,
+                              args.adapter_type,
+                              args.adapter_dim)
+        return backbone
     elif model_type == ModelType.CHIEF:
-        return _build_chief()
+        backbone = _build_chief()
+        backbone = inject_adapter(backbone,
+                              args.adapter_type,
+                              args.adapter_dim)
+        return backbone
+        
     else:
         # This should never happen if parse_model_type is used correctly
         raise ValueError(f"Unsupported model: {model_type}")
@@ -79,3 +105,5 @@ def _build_chief() -> nn.Module:
         global_pool="avg"
     )
     return model
+
+
