@@ -44,16 +44,8 @@ An end-to-end pipeline for
 ## ⚙️ Prerequisites
 
 ```bash
-# create env
-conda create -n tcga-py310 python=3.10
-conda activate tcga-py310
-
-# core deps
 conda install -c conda-forge openslide-python openslide
-pip install \
-    torch torchvision timm albumentations \
-    opencv-python-headless h5py pillow pandas \
-    numpy scikit-learn tqdm wandb omegaconf torchstain
+pip install -r requirements.txt
 ```
 
 ---
