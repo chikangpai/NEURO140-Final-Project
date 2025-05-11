@@ -1,6 +1,6 @@
 # NEURO140-Final-Project
 
-Note: We are not publishing this on Github public since we may extend part of this work as publications in the future.
+Note: We are only making this Github repo public temporarily. We may extend part of this work and refine it for publications in the future.
 
 An end-to-end pipeline for  
 1. tiling TCGA whole-slide images (WSIs),  
