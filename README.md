@@ -38,7 +38,7 @@ An end-to-end pipeline for
 ## 🔍 Attributions
 
 - **Tiling & feature-extraction**  
-  Adapted and integrated some private lab repos (Contributors: Shih-Yen Lin, Bao Li, Sophie Tsai). I refractored and integrated it, and use it in TCGA datasets, refractored and add adapter logic.
+  Integrated some private lab repos (Contributors: Shih-Yen Lin, Bao Li, Sophie Tsai). I develop it specifically in TCGA datasets and in gene mutation tasks. I also implemented the adapter/classifier logic.
 - **Patch embeddings**  
   Leveraging open-source [Owkin HistoSSLscaling](https://github.com/owkin/HistoSSLscaling).  
 ---
