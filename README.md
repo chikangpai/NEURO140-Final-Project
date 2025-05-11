@@ -31,6 +31,7 @@ An end-to-end pipeline for
 │   ├── util.py                   # Helpers to save some arguments.
 │   ├── run_template.sh           # I use this sh file to submit a job on my o2 server to run the training 
 │   └── network.py                # ClfNet and MIL attentions, adpaters.
+│── plot_results.ipynb            # A notebook to plot all graphs from inference results.
 └── README.md                     # this file
 
 ````
@@ -70,6 +71,12 @@ Run the sh file template also, make sure you got enough storage for the slides a
 ### 3. Train gene-mutation classifier
 
 In the multi-instance learning part, you can choose whether to use adapter. Simply change the "TRAIN_METHOD" in the sh file.
+
+---
+
+### 4. Check results
+
+After storing each training models and inference results in the desired folder, we can use the notebook ipynb file to obtain results.
 
 ---
 
