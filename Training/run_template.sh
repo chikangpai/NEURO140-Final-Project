@@ -14,8 +14,6 @@
 #              You can change the cancer types by changing the number after the dash in the --array flag
 #              See CANCER below for the list of cancer types
 
-
-source activate fair_tuning
 # IDX=$((SLURM_ARRAY_TASK_ID))
 
 IDX=$((SLURM_ARRAY_TASK_ID))

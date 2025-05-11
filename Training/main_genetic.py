@@ -13,7 +13,7 @@ import numpy as np
 from sklearn.metrics import roc_auc_score
 from framework import parse_args
 
-from dataset import generate_dataset, get_datasets, CancerDataset, N_FOLDS  # noqa: F401  (external module)
+from dataset import generateDataset, get_datasets, N_FOLDS  # noqa: F401  (external module)
 from network import ClfNet  # noqa: F401 (external module)
 from util import (
     save_args,
@@ -26,7 +26,7 @@ from util import (
 # ---------------------------------------------------------------------------
 # CONSTANTS & HELPERS
 # ---------------------------------------------------------------------------
-TASK_GENE_MUTATION: int = 3       # Fixed task id for gene‑mutation classification
+TASK_GENE_MUTATION: int = 4       # Fixed task id for gene‑mutation classification
 NUM_CLASSES: int = 2             # Gene‑mutation is binary (mutated vs wild‑type)
 
 # ---------------------------------------------------------------------------
@@ -168,7 +168,7 @@ def main_CV(args):
         args.gene = gene
 
         # ----------------‑ DATASET -----------------
-        data = generate_dataset(args)
+        data = generateDataset(args)
         df = data.train_valid_test(args.split_ratio)
 
         # ----------------‑ CV FOLDS ---------------

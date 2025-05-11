@@ -164,35 +164,3 @@ class MLP(nn.Module):
         # features = self.featureExtractor(x.squeeze(0), lengths)
         preds = self.fc_target(features)
         return preds
-
-class WeibullModel(nn.Module):
-    def __init__(self, featureLength=768, dropout=None):
-        super(WeibullModel, self).__init__()
-        self.featureExtractor = MILNet(featureLength=768,dropout=dropout)
-        self.featureLength = featureLength
-        self.fc_target = nn.Sequential(
-            nn.Linear(featureLength, 256, bias=True),
-            nn.ReLU(),
-            DropoutOrIdentity(dropout),
-            nn.LayerNorm(256),
-            nn.Linear(256, 128, bias=True),
-            nn.ReLU(),
-            DropoutOrIdentity(dropout),
-            nn.LayerNorm(128),
-            nn.Linear(128, 2, bias=True),
-        )
-        self.softplus = nn.Softplus()
-        nn.init.xavier_uniform_(self.fc_target[0].weight)
-
-    def forward(self, x, lengths):
-        features = self.featureExtractor(x.squeeze(0), lengths)
-        x = self.fc_target(features)
-        shape_scale = self.activate(x)
-        return shape_scale
-
-    def activate(self, x):
-        a = torch.exp(x[:, 0])
-        b = self.softplus(x[:, 1])
-        a = torch.reshape(a, (a.size()[0], 1))
-        b = torch.reshape(b, (b.size()[0], 1))
-        return torch.cat((a, b), dim=1)

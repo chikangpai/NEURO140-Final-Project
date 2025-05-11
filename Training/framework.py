@@ -6,16 +6,13 @@ import torch
 import glob
 from pathlib import Path
 from tqdm import tqdm
-from network import ClfNet, WeibullModel, MLP
+from network import ClfNet
 from util import *
 from os.path import join
 import typing
-from typing import List, Union
 from dataset import *
 from sklearn.metrics import roc_auc_score
 
-from bootstrap_significant_test.bootstrap_TCGA_bias_test import CV_bootstrap_bias_test
-from bootstrap_significant_test.bootstrap_TCGA_improvement_test import CV_bootstrap_improvement_test
 import yaml
 
 N_FOLDS = 4
