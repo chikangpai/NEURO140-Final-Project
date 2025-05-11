@@ -1,0 +1,31 @@
+# YAML file containing dataset configurations
+TCGA:
+  generator: generateTCGADataSet # the class to generate the dataset
+  args: # arguments to pass to the generator class
+    strClinicalInformationPath: clinical_information
+    age_col: Diagnosis Age
+    
+DFCI:
+  generator: generateExternalDataSet
+  args:
+    strClinicalInformationPath: DFCI_clnical_data_converted
+    age_col: age_at_diagnosis
+    intDiagnosticSlide: 1 # FFPE
+    mutation_kw: _mutated # the keyword to identify the mutation column
+
+CPTAC:
+  generator: generateExternalDataSet
+  args:
+    strClinicalInformationPath: CPTAC_clnical_data_converted
+    age_col: age_at_diagnosis
+    intDiagnosticSlide: 0 # frozen
+    mutation_kw: _mutated
+
+RoswellPark:
+  generator: generateExternalDataSet
+  args:
+    strClinicalInformationPath: RoswellPark_clnical_data_converted
+    age_col: age
+    intDiagnosticSlide: 0
+    mutation_kw: _mutated
+

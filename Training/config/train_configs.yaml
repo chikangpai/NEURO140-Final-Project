@@ -1,0 +1,41 @@
+# A dictionary that contains all the configurations of training algorithms
+
+# The key is the name of the algorithm
+# The value is the arguments of the algorithm
+
+### Example (baseline)
+baseline:
+  reweight: False # whether to reweight the training samples
+  selection: AUROC # the selection criterion
+  pretrained: False # whether to use a pretrained model
+  finetune_layer_names: # the names of the layers to finetune (will freeze the rest. Only used if pretrained is True)
+    - fc_target.8 # NOTE: I added dropout layer so the layer ID is different from the previous version(originnal fc_target.6)
+###
+
+### AUROC finetuning with adapters with pretrained weights
+auroc-adapter-bottleneck-64:
+  reweight: True
+  reweight_cols:
+    - label
+  reweight_method: weightedsampler
+  selection: loss
+  pretrained: True
+  class_loss: CrossEntropy
+  finetune_layer_names:
+    null
+  adapter_type: "bottleneck"   # If adapter should be used. Leave empty or set to null if not.
+  adapter_dim: 64              # Optional: the dimensionality for the adapter bottleneck.
+
+  ### AUROC finetuning with adapters with pretrained weights
+auroc-adapter-bottleneck-64-no-pretrained:
+  reweight: True
+  reweight_cols:
+    - label
+  reweight_method: weightedsampler
+  selection: loss
+  pretrained: False
+  class_loss: CrossEntropy
+  finetune_layer_names:
+    null
+  adapter_type: "bottleneck"   # If adapter should be used. Leave empty or set to null if not.
+  adapter_dim: 64              # Optional: the dimensionality for the adapter bottleneck.

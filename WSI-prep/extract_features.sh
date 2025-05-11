@@ -9,9 +9,9 @@
 #SBATCH --array=0-2            # one job per cohort
 
 # ---------------- user settings ----------------
-COHORTS=( "TCGA-BRCA-PM" "TCGA-LGG-PM" "TCGA-THCA-PM" )
+COHORTS=( "TCGA-BRCA-PM")
 MODEL_LIST="chief"            # or chief,uni
-OUTPUT_ROOT="$HOME/wsi_features_adapter"     # destination for HDF5s
+OUTPUT_ROOT="$HOME/wsi_features"     # destination for HDF5s
 
 # (optional) HF token for gated models (UNI, Virchow…) – leave blank if not needed
 HF_TOKEN=""
@@ -41,7 +41,5 @@ python WSI-prep/create_features.py \
   --models         "${MODEL_LIST}" \
   --device         cuda \
   --target_mag     20 \
-  --stain_norm \
-  --adapter_type   bottleneck \           # NEW ⚡
-  --adapter_dim    64 \                   # NEW ⚡
+  --stain_norm \          
   --hf_token       "${HF_TOKEN}"
