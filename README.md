@@ -1,7 +1,5 @@
 # NEURO140-Final-Project
 
-Note: We are only making this Github repo public temporarily. We may extend part of this work and refine it for publications in the future.
-
 An end-to-end pipeline for  
 1. tiling TCGA whole-slide images (WSIs),  
 2. extracting patch embeddings with pretrained vision backbones, and  
@@ -82,7 +80,7 @@ After storing each training models and inference results in the desired folder, 
 
 ## 📄 License & Citation
 
-This work builds on private-lab code (Lin, Li, Tsai) and Owkin's HistoSSLscaling. Please cite:
+This work builds on private-lab code (SHih-Yen Lin, Bao Li, Sophie Tsai) and Owkin's HistoSSLscaling. Please cite:
 
 ```bibtex
 @software{owkin_histolssl,
